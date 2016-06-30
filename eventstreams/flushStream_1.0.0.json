@@ -1,0 +1,12 @@
+{
+  "name": "flushStream",
+  "version": "1.0.0",
+  "nickName": "",
+  "description": "",
+  "payloadData": [
+    {
+      "name": "doFlush",
+      "type": "BOOL"
+    }
+  ]
+}

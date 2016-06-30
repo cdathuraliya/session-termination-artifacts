@@ -1,0 +1,50 @@
+/* Enter a unique ExecutionPlan */
+@Plan:name('SessionTerminationExecutionPlan')
+
+/* Enter a unique description for ExecutionPlan */
+-- @Plan:description('Session termination execution plan')
+
+/* define streams/tables and write queries here ... */
+
+@Import('flushStream:1.0.0')
+define stream flushStream (doFlush bool);
+
+@Import('TestSessionAnalyticsStream:1.0.0')
+define stream TestSessionAnalyticsStream (sessionId string, sessionStart long, sessionRenew long, sessionTermination long, action int, username string, 
+										  userStoreDomain string, ip string, tenantId string, rememberFlag bool);
+
+@Export('TestSessionAnalyticsOutputStream:1.0.0')
+define stream TestSessionAnalyticsOutputStream (sessionId string, sessionStart long, sessionRenew long, sessionTermination long, action int, username string, 
+												userStoreDomain string, ip string, tenantId string, rememberFlag bool);
+
+define table EventTerminationTable (sessionId string, sessionStart long, sessionRenew long, sessionTermination long, action int, username string, 
+												userStoreDomain string, ip string, tenantId string, rememberFlag bool);
+
+/* define trigger EventTerminationTriggerStream at every 1 min; */
+
+/* send an event if incoming event is a termination */
+from TestSessionAnalyticsStream[TestSessionAnalyticsStream.action == 2]
+select *
+insert into TestSessionAnalyticsOutputStream;
+
+/* add or update event table if incoming event is a start or a renew */
+from TestSessionAnalyticsStream[TestSessionAnalyticsStream.action == 0 OR TestSessionAnalyticsStream.action == 1]
+select *
+insert overwrite EventTerminationTable
+on sessionId == EventTerminationTable.sessionId;
+
+/* check event table for terminated sessions at regular intervals and send an event for terminated sessions */
+/* from EventTerminationTriggerStream join EventTerminationTable
+on EventTerminationTable.sessionTermination <= time:timestampInMilliseconds(time:currentTimestamp(), 'yyyy-MM-dd HH:mm:ss')/1000
+select sessionId, sessionStart, sessionRenew, sessionTermination, action, username, userStoreDomain, ip, tenantId, rememberFlag
+insert into TestSessionAnalyticsOutputStream; */
+
+/* delete terminated sessions from event table */
+from TestSessionAnalyticsOutputStream
+delete EventTerminationTable
+on EventTerminationTable.sessionId == sessionId;
+
+from flushStream join EventTerminationTable
+select sessionId, time:timestampInMilliseconds(time:currentTimestamp(), 'yyyy-MM-dd HH:mm:ss') as sessionStart, sessionRenew, sessionTermination, action, username, userStoreDomain, ip, tenantId, rememberFlag
+/* select sessionId, sessionStart, sessionRenew, sessionTermination, action, username, userStoreDomain, ip, tenantId, rememberFlag */
+insert into TestSessionAnalyticsOutputStream;

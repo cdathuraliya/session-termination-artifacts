@@ -1,0 +1,48 @@
+{
+  "name": "TestSessionAnalyticsOutputStream",
+  "version": "1.0.0",
+  "nickName": "",
+  "description": "",
+  "payloadData": [
+    {
+      "name": "sessionId",
+      "type": "STRING"
+    },
+    {
+      "name": "sessionStart",
+      "type": "LONG"
+    },
+    {
+      "name": "sessionRenew",
+      "type": "LONG"
+    },
+    {
+      "name": "sessionTermination",
+      "type": "LONG"
+    },
+    {
+      "name": "action",
+      "type": "INT"
+    },
+    {
+      "name": "username",
+      "type": "STRING"
+    },
+    {
+      "name": "userStoreDomain",
+      "type": "STRING"
+    },
+    {
+      "name": "ip",
+      "type": "STRING"
+    },
+    {
+      "name": "tenantId",
+      "type": "STRING"
+    },
+    {
+      "name": "rememberFlag",
+      "type": "BOOL"
+    }
+  ]
+}
